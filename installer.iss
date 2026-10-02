@@ -1,5 +1,5 @@
 ﻿#define AppName "ExtOnly"
-#define AppVersion "1.0.0"
+#define AppVersion "1.0.1"
 #define AppPublisher "ExtOnly"
 #define AppFileName "ExtOnly.dll"
 
@@ -33,6 +33,8 @@ Source: "build\ExtOnly.dll"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
 Root: HKCU; Subkey: "Software\Classes\*\shellex\ContextMenuHandlers\ExtOnly"; ValueType: string; ValueName: ""; ValueData: "{{B06D4875-833C-4F8E-85A7-8811748382EE}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Directory\shellex\ContextMenuHandlers\ExtOnly"; ValueType: string; ValueName: ""; ValueData: "{{B06D4875-833C-4F8E-85A7-8811748382EE}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Folder\shellex\ContextMenuHandlers\ExtOnly"; ValueType: string; ValueName: ""; ValueData: "{{B06D4875-833C-4F8E-85A7-8811748382EE}"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\CLSID\{{B06D4875-833C-4F8E-85A7-8811748382EE}"; ValueType: string; ValueName: ""; ValueData: "{#AppName}"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\CLSID\{{B06D4875-833C-4F8E-85A7-8811748382EE}\InprocServer32"; ValueType: string; ValueName: ""; ValueData: "{app}\{#AppFileName}"
 Root: HKCU; Subkey: "Software\Classes\CLSID\{{B06D4875-833C-4F8E-85A7-8811748382EE}\InprocServer32"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Apartment"

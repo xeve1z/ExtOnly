@@ -17,6 +17,12 @@ $handlerKey = "$classes\*\shellex\ContextMenuHandlers\ExtOnly"
 New-Item -Path $handlerKey -Force | Out-Null
 Set-ItemProperty -LiteralPath $handlerKey -Name '(Default)' -Value $clsid
 
+foreach ($target in @('Directory', 'Folder')) {
+    $targetKey = "$classes\$target\shellex\ContextMenuHandlers\ExtOnly"
+    New-Item -Path $targetKey -Force | Out-Null
+    Set-ItemProperty -LiteralPath $targetKey -Name '(Default)' -Value $clsid
+}
+
 $clsidKey = "$classes\CLSID\$clsid"
 New-Item -Path $clsidKey -Force | Out-Null
 Set-ItemProperty -LiteralPath $clsidKey -Name '(Default)' -Value 'ExtOnly'
