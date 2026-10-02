@@ -16,9 +16,6 @@ extern LONG g_objectCount;
 
 namespace
 {
-// ---------------------------------------------------------------- デバッグ用ログ
-// リリース版では何もしない（build.ps1 -Debug でのみ記録する）。
-
 #ifdef EXTONLY_TRACE
 
 void AppendLog(std::wstring& log, const wchar_t* format, ...)
@@ -33,7 +30,6 @@ void AppendLog(std::wstring& log, const wchar_t* format, ...)
     log += L"\r\n";
 }
 
-// ログをテキストファイルに追記し、そのパスを返す（UTF-16LE）。
 std::wstring WriteLogFile(const std::wstring& text)
 {
     PWSTR localAppData = nullptr;
@@ -86,9 +82,6 @@ std::wstring LogHeader(const wchar_t*) { return std::wstring(); }
 
 #endif
 
-// ---------------------------------------------------------------- 種類の判定
-
-// "C:\dir\file.PNG" -> L"png"
 std::wstring ExtensionFromParsingName(LPCWSTR parsingName)
 {
     LPCWSTR ext = PathFindExtensionW(parsingName);
@@ -100,8 +93,6 @@ std::wstring ExtensionFromParsingName(LPCWSTR parsingName)
     return value;
 }
 
-// CIDA の子 PIDL は終端されていない（次の要素と連続している）ため、
-// 終端付きの複製を作る。シェルの API は終端を前提に PIDL をたどる。
 PITEMID_CHILD CloneChildTerminated(PCUITEMID_CHILD child)
 {
     const USHORT size = child->mkid.cb;
@@ -114,7 +105,6 @@ PITEMID_CHILD CloneChildTerminated(PCUITEMID_CHILD child)
     return copy;
 }
 
-// フォルダーかどうか。zip など「フォルダーにも見えるファイル」は除外する。
 bool IsFolderPidl(IShellFolder* psf, PCUITEMID_CHILD pidlChild)
 {
     SFGAOF attributes = SFGAO_FOLDER | SFGAO_STREAM;
@@ -133,7 +123,6 @@ bool IsFolderItem(IShellItem* item)
     return (attributes & SFGAO_FOLDER) != 0 && (attributes & SFGAO_STREAM) == 0;
 }
 
-// SHELLIDLIST が取れないときの保険:HDROP（ファイルパスの一覧）から種類を集める。
 void CollectCategoriesFromHDrop(IDataObject* pdtobj, std::vector<std::wstring>* categories, std::wstring& log)
 {
     FORMATETC fe = { CF_HDROP, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
@@ -173,7 +162,6 @@ void CollectCategoriesFromHDrop(IDataObject* pdtobj, std::vector<std::wstring>* 
     ReleaseStgMedium(&stm);
 }
 
-// メニューに並べる種類（拡張子または "folder"）を、選択アイテム群から集める。
 void CollectCategories(IDataObject* pdtobj, std::vector<std::wstring>* categories, std::wstring& log)
 {
     const CLIPFORMAT cfShellIdList = static_cast<CLIPFORMAT>(RegisterClipboardFormatW(CFSTR_SHELLIDLIST));
@@ -215,7 +203,6 @@ void CollectCategories(IDataObject* pdtobj, std::vector<std::wstring>* categorie
                 PCUITEMID_CHILD rawChild =
                     reinterpret_cast<PCUITEMID_CHILD>(reinterpret_cast<BYTE*>(pida) + pida->aoffset[i + 1]);
 
-                // 終端されていないので、終端付きの複製を作ってから使う。
                 PITEMID_CHILD child = CloneChildTerminated(rawChild);
                 if (!child)
                 {
@@ -268,7 +255,6 @@ void CollectCategories(IDataObject* pdtobj, std::vector<std::wstring>* categorie
     ReleaseStgMedium(&stm);
 }
 
-// 1 アイテムの拡張子を返す（小文字・ドット無し）。
 std::wstring ItemExtension(IShellItem* item)
 {
     IShellItem2* item2 = nullptr;
@@ -310,14 +296,11 @@ std::wstring ItemExtension(IShellItem* item)
     return result;
 }
 
-// ---------------------------------------------------------------- ビューの取得
-
 bool IsDesktopWindowClass(const wchar_t* className)
 {
     return _wcsicmp(className, L"Progman") == 0 || _wcsicmp(className, L"WorkerW") == 0;
 }
 
-// 右クリックしたウィンドウに対応するエクスプローラーのビュー（IFolderView）を取得する。
 IFolderView* GetFolderViewFromWindow(HWND hwnd, std::wstring& log)
 {
     if (!hwnd)
@@ -433,7 +416,6 @@ IFolderView* GetFolderViewFromWindow(HWND hwnd, std::wstring& log)
 
     shellWindows->Release();
 
-    // ウィンドウの照合が取れない環境向け: 候補が 1 つだけならそれを使う。
     if (!matched && candidate && candidateCount == 1)
     {
         AppendLog(log, L"フォールバック: ビューが 1 つだけなので採用");
@@ -448,7 +430,6 @@ IFolderView* GetFolderViewFromWindow(HWND hwnd, std::wstring& log)
     return matched;
 }
 
-// ビューが表示しているフォルダーの PIDL を取得する（呼び出し側が CoTaskMemFree する）。
 PIDLIST_ABSOLUTE GetViewFolderPidl(IFolderView* view)
 {
     IShellFolder* folder = nullptr;
@@ -467,7 +448,6 @@ PIDLIST_ABSOLUTE GetViewFolderPidl(IFolderView* view)
     return pidl;
 }
 
-// 指定フォルダーを表示しているビューを探す。
 IFolderView* FindFolderViewForFolder(PCIDLIST_ABSOLUTE folderPidl, std::wstring& log)
 {
     IShellWindows* shellWindows = nullptr;
@@ -534,7 +514,6 @@ IFolderView* FindFolderViewForFolder(PCIDLIST_ABSOLUTE folderPidl, std::wstring&
     return result;
 }
 
-// ビューの選択全体から種類（拡張子または folder）を集める。
 void CollectCategoriesFromView(IFolderView* view, std::vector<std::wstring>* categories)
 {
     IShellItemArray* selection = nullptr;
@@ -544,7 +523,6 @@ void CollectCategoriesFromView(IFolderView* view, std::vector<std::wstring>* cat
     DWORD count = 0;
     selection->GetCount(&count);
 
-    // メニュー表示が固まらないよう上限を設ける。
     const DWORD limit = 2000;
 
     for (DWORD i = 0; i < count && i < limit; ++i)
@@ -627,7 +605,6 @@ IFACEMETHODIMP CExtOnlyContextMenu::Initialize(PCIDLIST_ABSOLUTE pidlFolder, IDa
 
     m_categories.clear();
 
-    // 呼ばれたこと自体を記録する（大量選択でここに来ない場合の切り分け用）。
     WriteLogFile(LogHeader(L"(menu)") + std::wstring(L"Initialize called\r\n"));
 
     if (!pdtobj)
@@ -644,7 +621,6 @@ IFACEMETHODIMP CExtOnlyContextMenu::Initialize(PCIDLIST_ABSOLUTE pidlFolder, IDa
         m_categories.erase(std::unique(m_categories.begin(), m_categories.end()), m_categories.end());
     }
 
-    // どの種類を認識したか記録する（調査用）。
     AppendLog(log, L"menu categories = %u (elapsed=%u ms)",
               static_cast<unsigned>(m_categories.size()),
               static_cast<unsigned>(GetTickCount() - startTick));
@@ -663,12 +639,8 @@ IFACEMETHODIMP CExtOnlyContextMenu::QueryContextMenu(HMENU hmenu, UINT indexMenu
     if (uFlags & (CMF_DEFAULTONLY | CMF_VERBSONLY))
         return noItems;
 
-    // Windows はメニューを作る時、選択の先頭 16 件しか渡さないことがある。
-    // 種類を取りこぼさないよう、ビューの選択全体から集め直す。
     RefreshCategoriesFromView();
 
-    // 異なる種類（拡張子または folder）が 2 つ以上あるときだけメニューを出す。
-    // （同じ種類だけを何個選んでも絞り込む意味がないため）
     if (m_categories.size() < 2)
         return noItems;
 
@@ -717,14 +689,12 @@ IFACEMETHODIMP CExtOnlyContextMenu::GetCommandString(UINT_PTR, UINT, UINT*, CHAR
     return E_NOTIMPL;
 }
 
-// ビューの選択全体から種類を集め直す（16 件制限の回避）。
 void CExtOnlyContextMenu::RefreshCategoriesFromView()
 {
     std::wstring log;
 
     IFolderView* view = nullptr;
 
-    // 1) 今アクティブな（＝右クリックした）エクスプローラーウィンドウからビューを取る
     HWND hwnd = GetActiveWindow();
     if (!hwnd)
         hwnd = GetForegroundWindow();
@@ -734,7 +704,6 @@ void CExtOnlyContextMenu::RefreshCategoriesFromView()
     if (hwnd)
         view = GetFolderViewFromWindow(hwnd, log);
 
-    // 2) だめなら、選択フォルダーと一致するビューを探す
     if (!view && m_folderPidl)
         view = FindFolderViewForFolder(m_folderPidl, log);
 
@@ -769,8 +738,6 @@ void CExtOnlyContextMenu::RefreshCategoriesFromView()
     WriteLogFile(LogHeader(L"(menu)") + log);
 }
 
-// 選んだ種類（拡張子または folder）だけを選択し直す（それ以外の選択は外れる）。
-// 選択アイテムはエクスプローラーのビューから直接取得するので、取り違えが起きない。
 void CExtOnlyContextMenu::ApplyCategoryFilter(const std::wstring& category, HWND hwnd)
 {
     std::wstring log;
@@ -809,7 +776,6 @@ void CExtOnlyContextMenu::ApplyCategoryFilter(const std::wstring& category, HWND
 
     const bool wantFolder = (category == EXTONLY_FOLDER_CATEGORY);
 
-    // 選択されていて、種類が一致するものだけを残す。
     std::vector<IShellItem*> kept;
     for (DWORD i = 0; i < selectedCount; ++i)
     {
@@ -827,7 +793,6 @@ void CExtOnlyContextMenu::ApplyCategoryFilter(const std::wstring& category, HWND
     }
     selection->Release();
 
-    // ビューが扱える子 PIDL に変換する。
     std::vector<PIDLIST_ABSOLUTE> absolutePidls;
     std::vector<PCUITEMID_CHILD> childPidls;
 
@@ -847,7 +812,6 @@ void CExtOnlyContextMenu::ApplyCategoryFilter(const std::wstring& category, HWND
 
     if (!childPidls.empty())
     {
-        // 1 個ずつ選択する。最初の 1 個で他を全部解除し、残りは追加選択。
         for (size_t i = 0; i < childPidls.size(); ++i)
         {
             DWORD flags = SVSI_SELECT | SVSI_ENSUREVISIBLE;

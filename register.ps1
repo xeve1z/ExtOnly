@@ -4,7 +4,6 @@
 
 $ErrorActionPreference = 'Stop'
 
-# src/ExtOnly.h の CLSID_ExtOnlyContextMenu と同じ値にすること
 $clsid = '{B06D4875-833C-4F8E-85A7-8811748382EE}'
 $dll = Join-Path $PSScriptRoot 'build\ExtOnly.dll'
 

@@ -39,7 +39,6 @@ $batch += ('cd /d "{0}"' -f $outDir)
 $batch += $cl
 Set-Content -LiteralPath $batchPath -Value $batch -Encoding Oem
 
-# ExtOnly.dll がエクスプローラーに読み込まれていると上書きできないため、必要なら再起動する。
 $wasLoaded = $false
 foreach ($process in (Get-Process explorer -ErrorAction SilentlyContinue))
 {
