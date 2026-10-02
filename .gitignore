@@ -1,0 +1,18 @@
+# ビルド生成物（リポジトリに入れない）
+build/
+dist/
+
+# Visual Studio の作業ファイル
+.vs/
+*.user
+
+# コンパイル中間ファイル
+*.obj
+*.exp
+*.lib
+*.pdb
+*.ilk
+*.idb
+
+# ログ
+*.log
